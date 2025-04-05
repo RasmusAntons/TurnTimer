@@ -1,0 +1,9 @@
+/.idea
+/TurnTimer.csproj
+/TurnTimer.sln
+/TurnTimer.sln.DotSettings.user
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
