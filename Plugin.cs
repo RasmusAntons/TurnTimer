@@ -7,6 +7,7 @@ using HarmonyLib;
 using Il2CppInterop.Runtime.Injection;
 using Rules;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace TurnTimer;
 
@@ -36,6 +37,10 @@ public class Plugin : BasePlugin {
         }
         CurrentTurnUserID = id;
         CurrentTurnStartTime = DateTime.UtcNow.Ticks;
+        
+        var go = new GameObject("OnScreenTimer");
+        go.AddComponent<OnScreenTimer>();
+        Object.DontDestroyOnLoad(go);
     }
 
     public static void EndMove(string id) {
@@ -45,8 +50,9 @@ public class Plugin : BasePlugin {
         }
         CurrentTurnUserID = null;
         var endTime = DateTime.UtcNow.Ticks;
-        Moves.Add(new Tuple<string, int>(id, (int)(endTime - CurrentTurnStartTime)));
-        Log.LogInfo($"Player {id}'s move took {endTime - CurrentTurnStartTime} ticks.");
+        var timeDiff = (int) ((endTime - CurrentTurnStartTime) / TimeSpan.TicksPerMillisecond);
+        Moves.Add(new Tuple<string, int>(id, timeDiff));
+        Log.LogInfo($"Player {id}'s move took {timeDiff / 1000f:F} s.");
     }
 }
 
@@ -68,6 +74,15 @@ internal class OnTurnEnd {
 
 public class OnScreenTimer : MonoBehaviour {
     private void Update() {
-        throw new NotImplementedException();
+        
+    }
+
+    private void OnGUI() {
+        var text = "No current turn";
+        if (Plugin.CurrentTurnUserID != null) {
+            var dTime = (DateTime.UtcNow.Ticks - Plugin.CurrentTurnStartTime) / TimeSpan.TicksPerMillisecond;
+            text = $"player {Plugin.CurrentTurnUserID}: {dTime / 1000f:F} s";
+        }
+        GUI.Label(new Rect(10, 10, 200, 30), text);
     }
 }
